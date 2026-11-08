@@ -6,6 +6,9 @@ pub const BRIDGE_SCHEMA: u32 = 1;
 /// Lovelock's HUD script (`death_http_bridge.js`); same schema 1 envelope, richer event set.
 pub const LOVELOCK_RECORD_PREFIX: &str = "[DEADLOCK_DEATH_HOOK]";
 pub const LOVELOCK_SCHEMA: u32 = 1;
+/// Lovelock reports passive regen as `healing_received` with amount 1 roughly every
+/// second in combat; real heals observed in play were 15+ HP.
+const MIN_HEALING_RECEIVED: f64 = 5.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModSignal {
@@ -75,7 +78,10 @@ enum LovelockKind {
     AllyShielded {},
     DamageGiven {},
     DamageTaken {},
-    HealingReceived {},
+    HealingReceived {
+        #[serde(default)]
+        amount: f64,
+    },
     /// `detection` is `health_band:<n>`: 1 when the HUD enters mid health, 2 for low.
     DamageTakenIntensity {
         detection: String,
@@ -121,7 +127,8 @@ fn parse_lovelock(payload: &str) -> Option<ModSignal> {
         LovelockKind::AllyShielded {} => EventKind::AllyShielded,
         LovelockKind::DamageGiven {} => EventKind::DamageGiven,
         LovelockKind::DamageTaken {} => EventKind::DamageTaken,
-        LovelockKind::HealingReceived {} => EventKind::HealingReceived,
+        LovelockKind::HealingReceived { amount } if amount < MIN_HEALING_RECEIVED => return None,
+        LovelockKind::HealingReceived { .. } => EventKind::HealingReceived,
         LovelockKind::DamageTakenIntensity { detection } => match detection.as_str() {
             "health_band:1" => EventKind::HealthMid,
             "health_band:2" => EventKind::HealthLow,
@@ -258,6 +265,10 @@ mod tests {
                 r#""event":"game_lost","sequence":3,"detection":"match_end:enemy_team_victory""#,
                 EventKind::MatchLost,
             ),
+            (
+                r#""event":"healing_received","sequence":3,"amount":31,"health":741"#,
+                EventKind::HealingReceived,
+            ),
         ];
         for (body, kind) in cases {
             assert_eq!(lovelock_kind(body), Some(kind), "{body}");
@@ -288,6 +299,7 @@ mod tests {
             r#""event":"ability_catalog","abilities":[]"#,
             r#""event":"damage_taken_intensity","sequence":1,"detection":"health_band:7""#,
             r#""event":"ability_used","sequence":1,"ability_slot":0"#,
+            r#""event":"healing_received","sequence":1,"amount":1,"health":360"#,
         ] {
             assert_eq!(parse_bridge_line(&lovelock(body)), None, "{body}");
         }
