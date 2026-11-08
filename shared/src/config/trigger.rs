@@ -41,12 +41,14 @@ pub enum TriggerKind {
     PatronWeakened,
     MatchWon,
     MatchLost,
+    SoulPickupLarge,
+    SoulPickupSmall,
 }
 
 impl TriggerKind {
     /// Every trigger without an ability slot, in display order. Key parsing and the
     /// settings UI both derive from this, so a kind missing here cannot be configured.
-    pub const NAMED: [TriggerKind; 24] = [
+    pub const NAMED: [TriggerKind; 26] = [
         Self::Kill,
         Self::Death,
         Self::Assist,
@@ -64,6 +66,8 @@ impl TriggerKind {
         Self::SoulDeny,
         Self::AllyHealed,
         Self::AllyShielded,
+        Self::SoulPickupLarge,
+        Self::SoulPickupSmall,
         Self::GuardianDestroyed,
         Self::WalkerDestroyed,
         Self::ShrineDestroyed,
@@ -101,6 +105,8 @@ impl TriggerKind {
             Self::PatronWeakened => TriggerFamily::PatronWeakened,
             Self::MatchWon => TriggerFamily::MatchWon,
             Self::MatchLost => TriggerFamily::MatchLost,
+            Self::SoulPickupLarge => TriggerFamily::SoulPickupLarge,
+            Self::SoulPickupSmall => TriggerFamily::SoulPickupSmall,
         }
     }
 }
@@ -134,6 +140,8 @@ impl fmt::Display for TriggerKind {
             Self::PatronWeakened => write!(f, "patron_weakened"),
             Self::MatchWon => write!(f, "match_won"),
             Self::MatchLost => write!(f, "match_lost"),
+            Self::SoulPickupLarge => write!(f, "soul_pickup_large"),
+            Self::SoulPickupSmall => write!(f, "soul_pickup_small"),
         }
     }
 }
@@ -188,6 +196,8 @@ impl From<EventKind> for TriggerKind {
             EventKind::PatronWeakened => Self::PatronWeakened,
             EventKind::MatchWon => Self::MatchWon,
             EventKind::MatchLost => Self::MatchLost,
+            EventKind::SoulPickupLarge => Self::SoulPickupLarge,
+            EventKind::SoulPickupSmall => Self::SoulPickupSmall,
         }
     }
 }
@@ -247,6 +257,8 @@ pub enum TriggerFamily {
     PatronWeakened,
     MatchWon,
     MatchLost,
+    SoulPickupLarge,
+    SoulPickupSmall,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

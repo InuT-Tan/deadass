@@ -5,7 +5,7 @@ const TRIGGER_GROUPS = [
   { title: "Combat", kinds: ["kill", "death", "assist", "respawn"] },
   { title: "Melee", kinds: ["parry", "parried", "parry_failed", "punch_landed", "punch_taken"] },
   { title: "Damage & health", kinds: ["damage_given", "damage_taken", "healing_received", "health_mid", "health_low"] },
-  { title: "Support & souls", kinds: ["soul_deny", "ally_healed", "ally_shielded"] },
+  { title: "Support & souls", kinds: ["soul_deny", "ally_healed", "ally_shielded", "soul_pickup_large", "soul_pickup_small"] },
   {
     title: "Objectives & match",
     kinds: ["guardian_destroyed", "walker_destroyed", "shrine_destroyed", "base_guardian_destroyed", "patron_weakened", "match_won", "match_lost"],
@@ -32,6 +32,8 @@ const TRIGGER_LABELS = {
   soul_deny: "Soul denied",
   ally_healed: "Healed an ally",
   ally_shielded: "Shielded an ally",
+  soul_pickup_large: "Big soul pickup (boxes)",
+  soul_pickup_small: "Small soul pickup (last hits)",
   guardian_destroyed: "Enemy Guardian destroyed",
   walker_destroyed: "Enemy Walker destroyed",
   shrine_destroyed: "Enemy Shrine destroyed",

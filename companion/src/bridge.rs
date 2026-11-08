@@ -42,6 +42,9 @@ enum WireKind {
     AbilityUsed { ability_slot: u8 },
     #[serde(rename = "ability_ready")]
     AbilityReady { ability_slot: u8 },
+    /// From deadass's soul-pickup HUD watcher (tools/hud/soul_pickups.js).
+    #[serde(rename = "soul_pickup")]
+    SoulPickup { size: String },
 }
 
 #[derive(Deserialize)]
@@ -172,6 +175,11 @@ fn parse_deadass(payload: &str) -> Option<ModSignal> {
         WireKind::AbilityReady { ability_slot } => {
             Some(game(EventKind::AbilityReady { slot: ability_slot }))
         }
+        WireKind::SoulPickup { size } => match size.as_str() {
+            "large" => Some(game(EventKind::SoulPickupLarge)),
+            "small" => Some(game(EventKind::SoulPickupSmall)),
+            _ => None,
+        },
     }
 }
 
@@ -201,6 +209,22 @@ mod tests {
             parse_bridge_line(&record("hook_ready")),
             Some(ModSignal::HookReady)
         );
+    }
+
+    #[test]
+    fn soul_pickup_sizes_map_and_unknown_sizes_are_dropped() {
+        let line = |size: &str| {
+            format!(
+                "11/07 21:42:43 [PanoramaScript] [DEADASS]{{\"schema\":1,\"event\":\"soul_pickup\",\"mod_version\":\"0.1.0\",\"session_id\":\"s\",\"sequence\":2,\"client_time_ms\":7,\"size\":\"{size}\",\"amount\":95}}"
+            )
+        };
+        let kind = |size| match parse_bridge_line(&line(size)) {
+            Some(ModSignal::Game(event)) => Some(event.kind),
+            _ => None,
+        };
+        assert_eq!(kind("large"), Some(EventKind::SoulPickupLarge));
+        assert_eq!(kind("small"), Some(EventKind::SoulPickupSmall));
+        assert_eq!(kind("huge"), None);
     }
 
     #[test]

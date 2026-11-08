@@ -90,6 +90,9 @@ impl AppConfig {
         triggers.insert(TriggerKind::PatronWeakened, opt_in(0.9, 1500, 500));
         triggers.insert(TriggerKind::MatchWon, opt_in(1.0, 3000, 500));
         triggers.insert(TriggerKind::MatchLost, opt_in(0.3, 1500, 500));
+        // deadass soul-pickup HUD watcher.
+        triggers.insert(TriggerKind::SoulPickupLarge, opt_in(0.45, 300, 200));
+        triggers.insert(TriggerKind::SoulPickupSmall, opt_in(0.2, 120, 150));
         for slot in 0..4 {
             triggers.insert(
                 TriggerKind::AbilityUsed { slot },

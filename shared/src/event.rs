@@ -30,6 +30,9 @@ pub enum EventKind {
     PatronWeakened,
     MatchWon,
     MatchLost,
+    // Emitted by deadass's own soul-pickup HUD watcher.
+    SoulPickupLarge, // Box souls
+    SoulPickupSmall, // Trooper last hits
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
