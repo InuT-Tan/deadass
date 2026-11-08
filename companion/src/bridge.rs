@@ -108,10 +108,12 @@ fn parse_lovelock(payload: &str) -> Option<ModSignal> {
         LovelockKind::LocalPlayerDeath {} => EventKind::Death,
         LovelockKind::LocalPlayerAssist {} => EventKind::Assist,
         LovelockKind::LocalPlayerRespawn {} => EventKind::Respawn,
-        LovelockKind::AbilityUsed { ability_slot } => EventKind::AbilityUsed { slot: ability_slot },
-        LovelockKind::AbilityCooldownReady { ability_slot } => {
-            EventKind::AbilityReady { slot: ability_slot }
-        }
+        LovelockKind::AbilityUsed { ability_slot } => EventKind::AbilityUsed {
+            slot: lovelock_slot(ability_slot)?,
+        },
+        LovelockKind::AbilityCooldownReady { ability_slot } => EventKind::AbilityReady {
+            slot: lovelock_slot(ability_slot)?,
+        },
         LovelockKind::ParrySuccess {} => EventKind::Parry,
         LovelockKind::ParryFail {} => EventKind::ParryFailed,
         LovelockKind::SoulDeny {} => EventKind::SoulDeny,
@@ -138,6 +140,11 @@ fn parse_lovelock(payload: &str) -> Option<ModSignal> {
         record.client_time_ms,
         kind,
     )))
+}
+
+/// Lovelock numbers ability slots from 1 (`slotIndex + 1`); deadass trigger keys start at 0.
+fn lovelock_slot(slot: u8) -> Option<u8> {
+    slot.checked_sub(1)
 }
 
 fn parse_deadass(payload: &str) -> Option<ModSignal> {
@@ -220,12 +227,12 @@ mod tests {
                 EventKind::Respawn,
             ),
             (
-                r#""event":"ability_used","sequence":3,"ability_slot":2,"ability_name":"x","detection":"activated""#,
-                EventKind::AbilityUsed { slot: 2 },
+                r#""event":"ability_used","sequence":3,"ability_slot":1,"ability_name":"x","detection":"activated""#,
+                EventKind::AbilityUsed { slot: 0 },
             ),
             (
-                r#""event":"ability_cooldown_ready","sequence":3,"ability_slot":0"#,
-                EventKind::AbilityReady { slot: 0 },
+                r#""event":"ability_cooldown_ready","sequence":3,"ability_slot":4"#,
+                EventKind::AbilityReady { slot: 3 },
             ),
             (
                 r#""event":"parry_success","sequence":3,"detection":"enemy_stunned_after_parry""#,
@@ -280,6 +287,7 @@ mod tests {
             r#""event":"objectives_map_diag","count":3"#,
             r#""event":"ability_catalog","abilities":[]"#,
             r#""event":"damage_taken_intensity","sequence":1,"detection":"health_band:7""#,
+            r#""event":"ability_used","sequence":1,"ability_slot":0"#,
         ] {
             assert_eq!(parse_bridge_line(&lovelock(body)), None, "{body}");
         }
