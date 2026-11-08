@@ -1,6 +1,6 @@
 use crate::haptics::{GateDecision, HapticCommand, HapticGate, SuppressReason};
 use crate::openshock::{ControlCommand, OpenShockClient};
-use crate::toys::{ToyDevice, ToyHub};
+use crate::toys::{PlayOutcome, ToyDevice, ToyHub};
 use crate::transport::EventOutlet;
 use crate::ui::AppState;
 use deadass_shared::{AppConfig, GameEvent, TriggerKind, resolve_vibrate_targets};
@@ -63,22 +63,22 @@ async fn fire(
             "vibrate {trigger}: skipped, no target toys selected or connected"
         ));
     } else {
-        state.lock().await.push_log(format!(
-            "vibrate {} strength={:.2} duration_ms={} pattern={:?} toys={}",
-            trigger,
-            command.strength,
-            command.duration_ms,
-            command.pattern,
-            vibrate_targets.len(),
-        ));
-        let vibrate_hub = Arc::clone(hub);
-        tokio::spawn(async move {
-            vibrate_hub
+        match hub.lock().await.play(command, &vibrate_targets) {
+            PlayOutcome::Started => state.lock().await.push_log(format!(
+                "vibrate {} strength={:.2} duration_ms={} pattern={:?} toys={}",
+                trigger,
+                command.strength,
+                command.duration_ms,
+                command.pattern,
+                vibrate_targets.len(),
+            )),
+            // Frequent in fights (damage ticks every ~300 ms), so only when debugging.
+            PlayOutcome::Outranked if config.debug_logging => state
                 .lock()
                 .await
-                .play(command, &vibrate_targets)
-                .await;
-        });
+                .push_log(format!("vibrate {trigger}: outranked by a stronger effect")),
+            PlayOutcome::Outranked => {}
+        }
     }
 
     let shock = rule.shock.as_ref().and_then(ControlCommand::from_shock);

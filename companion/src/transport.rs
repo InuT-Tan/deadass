@@ -70,7 +70,37 @@ impl EventOutlet {
         Self { receiver }
     }
 
+    /// Next event, or `None` once the bus is closed. Falling behind skips the
+    /// overwritten events instead of ending the stream.
     pub async fn next(&mut self) -> Option<GameEvent> {
-        self.receiver.recv().await.ok().map(|message| message.event)
+        loop {
+            match self.receiver.recv().await {
+                Ok(message) => return Some(message.event),
+                Err(broadcast::error::RecvError::Lagged(skipped)) => {
+                    tracing::warn!(skipped, "event dispatch fell behind; dropped events");
+                }
+                Err(broadcast::error::RecvError::Closed) => return None,
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use deadass_shared::EventKind;
+
+    #[tokio::test]
+    async fn lagging_outlet_skips_ahead_instead_of_closing() {
+        let (sender, receiver) = broadcast::channel(2);
+        let mut outlet = EventOutlet::new(receiver);
+        for sequence in 0..5 {
+            let event = GameEvent::new(sequence, 0, EventKind::Kill);
+            assert!(sender.send(BusMessage { event }).is_ok());
+        }
+        assert_eq!(outlet.next().await.map(|event| event.sequence), Some(3));
+        drop(sender);
+        assert_eq!(outlet.next().await.map(|event| event.sequence), Some(4));
+        assert_eq!(outlet.next().await, None);
     }
 }

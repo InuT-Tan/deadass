@@ -1,8 +1,13 @@
 mod backend;
 mod central;
+mod effect;
 mod embedded;
 
 pub use backend::ButtplugToyBackend;
+
+use buttplug_client::ButtplugClientDevice;
+use effect::EffectSlot;
+pub use effect::PlayOutcome;
 
 use crate::haptics::HapticCommand;
 use thiserror::Error;
@@ -47,6 +52,7 @@ pub struct ToyHub {
     mode: ConnectionMode,
     central_url: String,
     backend: Option<ButtplugToyBackend>,
+    effects: EffectSlot<ButtplugClientDevice>,
 }
 
 impl ToyHub {
@@ -55,6 +61,7 @@ impl ToyHub {
             mode: ConnectionMode::Disconnected,
             central_url,
             backend: None,
+            effects: EffectSlot::default(),
         }
     }
 
@@ -74,13 +81,17 @@ impl ToyHub {
     }
 
     pub async fn connect_embedded(&mut self) -> Result<(), ToyError> {
-        self.backend = Some(embedded::connect_embedded().await?);
+        let backend = embedded::connect_embedded().await?;
+        self.effects.stop();
+        self.backend = Some(backend);
         self.mode = ConnectionMode::Embedded;
         Ok(())
     }
 
     pub async fn connect_central(&mut self) -> Result<(), ToyError> {
-        self.backend = Some(central::connect_central(&self.central_url).await?);
+        let backend = central::connect_central(&self.central_url).await?;
+        self.effects.stop();
+        self.backend = Some(backend);
         self.mode = ConnectionMode::ExternalCentral;
         Ok(())
     }
@@ -92,13 +103,17 @@ impl ToyHub {
         }
     }
 
-    pub async fn play(&self, command: HapticCommand, target_names: &[String]) {
-        if let Some(backend) = &self.backend {
-            backend.play(command, target_names).await;
+    /// Starts `command` on the named toys and returns at once. It interrupts the
+    /// effect still playing unless that one is stronger.
+    pub fn play(&self, command: HapticCommand, target_names: &[String]) -> PlayOutcome {
+        match &self.backend {
+            Some(backend) => self.effects.play(command, backend.targets(target_names)),
+            None => PlayOutcome::Started,
         }
     }
 
     pub async fn disconnect(&mut self) {
+        self.effects.stop();
         if let Some(backend) = self.backend.take() {
             backend.disconnect().await;
         }

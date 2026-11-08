@@ -67,7 +67,7 @@ pub async fn test_toys(backend: State<'_, Backend>) -> Result<StatusView, String
         pattern: Pattern::Vibrate,
     };
     let names = ToyDevice::names(&devices);
-    backend.hub.lock().await.play(command, &names).await;
+    backend.hub.lock().await.play(command, &names);
     backend.state.lock().await.push_log(format!(
         "toys test: vibrate 50% 500ms on {} toy{}",
         devices.len(),
@@ -104,11 +104,8 @@ pub async fn test_fire(backend: State<'_, Backend>, kind: String) -> Result<Stat
         .as_ref()
         .map(|(shock, selected)| (shock.intensity, shock.duration_ms, selected.len()));
 
-    let hub = Arc::clone(&backend.hub);
     let vibrate_targets_len = vibrate_targets.len();
-    let vibrate = tauri::async_runtime::spawn(async move {
-        hub.lock().await.play(command, &vibrate_targets).await;
-    });
+    backend.hub.lock().await.play(command, &vibrate_targets);
     let openshock = Arc::clone(&backend.openshock);
     let openshock_config = config.openshock.clone();
     let shock_result = async move {
@@ -124,7 +121,6 @@ pub async fn test_fire(backend: State<'_, Backend>, kind: String) -> Result<Stat
         }
     }
     .await;
-    let _ = vibrate.await;
 
     if vibrate_targets_len == 0 {
         backend.state.lock().await.push_log(format!(
