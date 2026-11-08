@@ -25,9 +25,54 @@ pub enum TriggerKind {
     PunchLanded,
     PunchTaken,
     Respawn,
+    ParryFailed,
+    SoulDeny,
+    AllyHealed,
+    AllyShielded,
+    DamageGiven,
+    DamageTaken,
+    HealingReceived,
+    HealthMid,
+    HealthLow,
+    GuardianDestroyed,
+    WalkerDestroyed,
+    ShrineDestroyed,
+    BaseGuardianDestroyed,
+    PatronWeakened,
+    MatchWon,
+    MatchLost,
 }
 
 impl TriggerKind {
+    /// Every trigger without an ability slot, in display order. Key parsing and the
+    /// settings UI both derive from this, so a kind missing here cannot be configured.
+    pub const NAMED: [TriggerKind; 24] = [
+        Self::Kill,
+        Self::Death,
+        Self::Assist,
+        Self::Respawn,
+        Self::Parry,
+        Self::Parried,
+        Self::ParryFailed,
+        Self::PunchLanded,
+        Self::PunchTaken,
+        Self::DamageGiven,
+        Self::DamageTaken,
+        Self::HealingReceived,
+        Self::HealthMid,
+        Self::HealthLow,
+        Self::SoulDeny,
+        Self::AllyHealed,
+        Self::AllyShielded,
+        Self::GuardianDestroyed,
+        Self::WalkerDestroyed,
+        Self::ShrineDestroyed,
+        Self::BaseGuardianDestroyed,
+        Self::PatronWeakened,
+        Self::MatchWon,
+        Self::MatchLost,
+    ];
+
     pub fn family(self) -> TriggerFamily {
         match self {
             Self::Kill => TriggerFamily::Kill,
@@ -40,6 +85,22 @@ impl TriggerKind {
             Self::PunchLanded => TriggerFamily::PunchLanded,
             Self::PunchTaken => TriggerFamily::PunchTaken,
             Self::Respawn => TriggerFamily::Respawn,
+            Self::ParryFailed => TriggerFamily::ParryFailed,
+            Self::SoulDeny => TriggerFamily::SoulDeny,
+            Self::AllyHealed => TriggerFamily::AllyHealed,
+            Self::AllyShielded => TriggerFamily::AllyShielded,
+            Self::DamageGiven => TriggerFamily::DamageGiven,
+            Self::DamageTaken => TriggerFamily::DamageTaken,
+            Self::HealingReceived => TriggerFamily::HealingReceived,
+            Self::HealthMid => TriggerFamily::HealthMid,
+            Self::HealthLow => TriggerFamily::HealthLow,
+            Self::GuardianDestroyed => TriggerFamily::GuardianDestroyed,
+            Self::WalkerDestroyed => TriggerFamily::WalkerDestroyed,
+            Self::ShrineDestroyed => TriggerFamily::ShrineDestroyed,
+            Self::BaseGuardianDestroyed => TriggerFamily::BaseGuardianDestroyed,
+            Self::PatronWeakened => TriggerFamily::PatronWeakened,
+            Self::MatchWon => TriggerFamily::MatchWon,
+            Self::MatchLost => TriggerFamily::MatchLost,
         }
     }
 }
@@ -57,6 +118,22 @@ impl fmt::Display for TriggerKind {
             Self::Parried => write!(f, "parried"),
             Self::PunchLanded => write!(f, "punch_landed"),
             Self::PunchTaken => write!(f, "punch_taken"),
+            Self::ParryFailed => write!(f, "parry_failed"),
+            Self::SoulDeny => write!(f, "soul_deny"),
+            Self::AllyHealed => write!(f, "ally_healed"),
+            Self::AllyShielded => write!(f, "ally_shielded"),
+            Self::DamageGiven => write!(f, "damage_given"),
+            Self::DamageTaken => write!(f, "damage_taken"),
+            Self::HealingReceived => write!(f, "healing_received"),
+            Self::HealthMid => write!(f, "health_mid"),
+            Self::HealthLow => write!(f, "health_low"),
+            Self::GuardianDestroyed => write!(f, "guardian_destroyed"),
+            Self::WalkerDestroyed => write!(f, "walker_destroyed"),
+            Self::ShrineDestroyed => write!(f, "shrine_destroyed"),
+            Self::BaseGuardianDestroyed => write!(f, "base_guardian_destroyed"),
+            Self::PatronWeakened => write!(f, "patron_weakened"),
+            Self::MatchWon => write!(f, "match_won"),
+            Self::MatchLost => write!(f, "match_lost"),
         }
     }
 }
@@ -65,24 +142,15 @@ impl FromStr for TriggerKind {
     type Err = String;
 
     fn from_str(raw: &str) -> Result<Self, Self::Err> {
-        match raw {
-            "kill" => Ok(Self::Kill),
-            "death" => Ok(Self::Death),
-            "assist" => Ok(Self::Assist),
-            "respawn" => Ok(Self::Respawn),
-            "parry" => Ok(Self::Parry),
-            "parried" => Ok(Self::Parried),
-            "punch_landed" => Ok(Self::PunchLanded),
-            "punch_taken" => Ok(Self::PunchTaken),
-            _ => {
-                let (name, slot) = raw.split_once(':').ok_or_else(|| unknown_trigger(raw))?;
-                let slot: u8 = slot.parse().map_err(|_| unknown_trigger(raw))?;
-                match name {
-                    "ability_used" => Ok(Self::AbilityUsed { slot }),
-                    "ability_ready" => Ok(Self::AbilityReady { slot }),
-                    _ => Err(unknown_trigger(raw)),
-                }
-            }
+        if let Some(named) = Self::NAMED.into_iter().find(|kind| kind.to_string() == raw) {
+            return Ok(named);
+        }
+        let (name, slot) = raw.split_once(':').ok_or_else(|| unknown_trigger(raw))?;
+        let slot: u8 = slot.parse().map_err(|_| unknown_trigger(raw))?;
+        match name {
+            "ability_used" => Ok(Self::AbilityUsed { slot }),
+            "ability_ready" => Ok(Self::AbilityReady { slot }),
+            _ => Err(unknown_trigger(raw)),
         }
     }
 }
@@ -104,6 +172,22 @@ impl From<EventKind> for TriggerKind {
             EventKind::PunchLanded => Self::PunchLanded,
             EventKind::PunchTaken => Self::PunchTaken,
             EventKind::Respawn => Self::Respawn,
+            EventKind::ParryFailed => Self::ParryFailed,
+            EventKind::SoulDeny => Self::SoulDeny,
+            EventKind::AllyHealed => Self::AllyHealed,
+            EventKind::AllyShielded => Self::AllyShielded,
+            EventKind::DamageGiven => Self::DamageGiven,
+            EventKind::DamageTaken => Self::DamageTaken,
+            EventKind::HealingReceived => Self::HealingReceived,
+            EventKind::HealthMid => Self::HealthMid,
+            EventKind::HealthLow => Self::HealthLow,
+            EventKind::GuardianDestroyed => Self::GuardianDestroyed,
+            EventKind::WalkerDestroyed => Self::WalkerDestroyed,
+            EventKind::ShrineDestroyed => Self::ShrineDestroyed,
+            EventKind::BaseGuardianDestroyed => Self::BaseGuardianDestroyed,
+            EventKind::PatronWeakened => Self::PatronWeakened,
+            EventKind::MatchWon => Self::MatchWon,
+            EventKind::MatchLost => Self::MatchLost,
         }
     }
 }
@@ -147,6 +231,22 @@ pub enum TriggerFamily {
     PunchLanded,
     PunchTaken,
     Respawn,
+    ParryFailed,
+    SoulDeny,
+    AllyHealed,
+    AllyShielded,
+    DamageGiven,
+    DamageTaken,
+    HealingReceived,
+    HealthMid,
+    HealthLow,
+    GuardianDestroyed,
+    WalkerDestroyed,
+    ShrineDestroyed,
+    BaseGuardianDestroyed,
+    PatronWeakened,
+    MatchWon,
+    MatchLost,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -168,6 +268,15 @@ impl TriggerConfig {
             strength,
             duration_ms,
             ..Self::default()
+        }
+    }
+
+    /// An opt-in preset: shipped disabled so new triggers never start firing on upgrade.
+    pub(crate) fn opt_in(strength: f64, duration_ms: u64, retrigger_cooldown_ms: u64) -> Self {
+        Self {
+            enabled: false,
+            retrigger_cooldown_ms,
+            ..Self::preset(strength, duration_ms)
         }
     }
 
@@ -208,13 +317,24 @@ mod tests {
 
     #[test]
     fn trigger_key_round_trips_through_parse() {
-        for kind in [
-            TriggerKind::Kill,
+        for kind in TriggerKind::NAMED.into_iter().chain([
             TriggerKind::AbilityUsed { slot: 2 },
             TriggerKind::AbilityReady { slot: 0 },
-        ] {
+        ]) {
             assert_eq!(kind.to_string().parse(), Ok(kind));
         }
+    }
+
+    #[test]
+    fn named_triggers_are_unique_and_slotless() {
+        let mut keys: Vec<String> = TriggerKind::NAMED
+            .iter()
+            .map(|kind| kind.to_string())
+            .collect();
+        assert!(keys.iter().all(|key| !key.contains(':')));
+        keys.sort();
+        keys.dedup();
+        assert_eq!(keys.len(), TriggerKind::NAMED.len());
     }
 
     #[test]

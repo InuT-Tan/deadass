@@ -21,16 +21,7 @@ pub struct TriggerView {
 }
 
 fn trigger_views(config: &AppConfig) -> Vec<TriggerView> {
-    let order = [
-        TriggerKind::Kill,
-        TriggerKind::Death,
-        TriggerKind::Assist,
-        TriggerKind::Respawn,
-        TriggerKind::Parry,
-        TriggerKind::Parried,
-        TriggerKind::PunchLanded,
-        TriggerKind::PunchTaken,
-    ];
+    let order = TriggerKind::NAMED;
     let view = |kind: &TriggerKind, rule: &TriggerConfig| TriggerView {
         kind: kind.to_string(),
         enabled: rule.enabled,

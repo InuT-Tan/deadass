@@ -3,7 +3,13 @@ import { els, h } from "./dom.js";
 
 const TRIGGER_GROUPS = [
   { title: "Combat", kinds: ["kill", "death", "assist", "respawn"] },
-  { title: "Melee", kinds: ["parry", "parried", "punch_landed", "punch_taken"] },
+  { title: "Melee", kinds: ["parry", "parried", "parry_failed", "punch_landed", "punch_taken"] },
+  { title: "Damage & health", kinds: ["damage_given", "damage_taken", "healing_received", "health_mid", "health_low"] },
+  { title: "Support & souls", kinds: ["soul_deny", "ally_healed", "ally_shielded"] },
+  {
+    title: "Objectives & match",
+    kinds: ["guardian_destroyed", "walker_destroyed", "shrine_destroyed", "base_guardian_destroyed", "patron_weakened", "match_won", "match_lost"],
+  },
   { title: "Ability cast", match: /^ability_used:(\d)$/ },
   { title: "Ability ready", match: /^ability_ready:(\d)$/ },
 ];
@@ -17,6 +23,22 @@ const TRIGGER_LABELS = {
   parried: "Got parried",
   punch_landed: "Punch landed",
   punch_taken: "Punch taken",
+  parry_failed: "Parry failed (stunned)",
+  damage_given: "Damage dealt",
+  damage_taken: "Damage taken",
+  healing_received: "Healing received",
+  health_mid: "Health dropped to mid",
+  health_low: "Health dropped to low",
+  soul_deny: "Soul denied",
+  ally_healed: "Healed an ally",
+  ally_shielded: "Shielded an ally",
+  guardian_destroyed: "Enemy Guardian destroyed",
+  walker_destroyed: "Enemy Walker destroyed",
+  shrine_destroyed: "Enemy Shrine destroyed",
+  base_guardian_destroyed: "Enemy Base Guardian destroyed",
+  patron_weakened: "Enemy Patron weakened",
+  match_won: "Match won",
+  match_lost: "Match lost",
 };
 
 const PATTERNS = ["vibrate", "pulse", "ramp"];

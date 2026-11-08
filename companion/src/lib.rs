@@ -16,7 +16,10 @@ pub mod transport;
 pub mod ui;
 pub mod updater;
 
-pub use bridge::{BRIDGE_RECORD_PREFIX, BRIDGE_SCHEMA, ModSignal, parse_bridge_line};
+pub use bridge::{
+    BRIDGE_RECORD_PREFIX, BRIDGE_SCHEMA, LOVELOCK_RECORD_PREFIX, LOVELOCK_SCHEMA, ModSignal,
+    parse_bridge_line,
+};
 pub use config_store::{ConfigStore, default_config_path};
 pub use dedup::EventDeduplicator;
 pub use dll_server::DllEventServer;

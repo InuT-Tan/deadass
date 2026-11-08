@@ -13,6 +13,23 @@ pub enum EventKind {
     PunchLanded,
     PunchTaken,
     Respawn,
+    // Emitted only by the Lovelock HUD script.
+    ParryFailed, // Own parry ended with the local player stunned
+    SoulDeny,
+    AllyHealed,
+    AllyShielded,
+    DamageGiven,
+    DamageTaken,
+    HealingReceived,
+    HealthMid,
+    HealthLow,
+    GuardianDestroyed, // Enemy objectives only
+    WalkerDestroyed,
+    ShrineDestroyed,
+    BaseGuardianDestroyed,
+    PatronWeakened,
+    MatchWon,
+    MatchLost,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

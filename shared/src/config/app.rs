@@ -41,6 +41,11 @@ impl AppConfig {
             });
         }
         self.openshock.shocker_id.clear();
+        // Configs written before a trigger existed lack its key; without this the
+        // trigger falls back to the enabled TriggerConfig::default and never shows in the UI.
+        for (kind, rule) in Self::default_triggers() {
+            self.triggers.entry(kind).or_insert(rule);
+        }
         self
     }
 
@@ -67,6 +72,24 @@ impl AppConfig {
         triggers.insert(TriggerKind::Parried, TriggerConfig::preset(0.5, 400));
         triggers.insert(TriggerKind::PunchLanded, TriggerConfig::preset(0.45, 200));
         triggers.insert(TriggerKind::PunchTaken, TriggerConfig::preset(0.4, 200));
+        // Lovelock HUD script events. Damage and healing arrive in ~250-300 ms batches.
+        let opt_in = TriggerConfig::opt_in;
+        triggers.insert(TriggerKind::ParryFailed, opt_in(0.5, 400, 500));
+        triggers.insert(TriggerKind::DamageGiven, opt_in(0.25, 150, 300));
+        triggers.insert(TriggerKind::DamageTaken, opt_in(0.3, 150, 300));
+        triggers.insert(TriggerKind::HealingReceived, opt_in(0.2, 200, 500));
+        triggers.insert(TriggerKind::HealthMid, opt_in(0.5, 400, 2000));
+        triggers.insert(TriggerKind::HealthLow, opt_in(0.8, 600, 2000));
+        triggers.insert(TriggerKind::SoulDeny, opt_in(0.3, 200, 300));
+        triggers.insert(TriggerKind::AllyHealed, opt_in(0.3, 300, 1000));
+        triggers.insert(TriggerKind::AllyShielded, opt_in(0.3, 300, 1000));
+        triggers.insert(TriggerKind::GuardianDestroyed, opt_in(0.6, 800, 500));
+        triggers.insert(TriggerKind::WalkerDestroyed, opt_in(0.7, 1000, 500));
+        triggers.insert(TriggerKind::ShrineDestroyed, opt_in(0.7, 1000, 500));
+        triggers.insert(TriggerKind::BaseGuardianDestroyed, opt_in(0.8, 1200, 500));
+        triggers.insert(TriggerKind::PatronWeakened, opt_in(0.9, 1500, 500));
+        triggers.insert(TriggerKind::MatchWon, opt_in(1.0, 3000, 500));
+        triggers.insert(TriggerKind::MatchLost, opt_in(0.3, 1500, 500));
         for slot in 0..4 {
             triggers.insert(
                 TriggerKind::AbilityUsed { slot },
@@ -126,6 +149,34 @@ impl Default for UpdateConfig {
 mod tests {
     use super::*;
     use crate::config::{ShockConfig, Shocker, TriggerConfig};
+
+    #[test]
+    fn every_named_trigger_has_a_default() {
+        let config = AppConfig::default();
+        for kind in TriggerKind::NAMED {
+            assert!(config.triggers.contains_key(&kind), "{kind} has no default");
+        }
+    }
+
+    #[test]
+    fn old_config_gains_new_triggers_disabled_and_keeps_its_own() {
+        let mut config = AppConfig::default();
+        config
+            .triggers
+            .retain(|kind, _| *kind == TriggerKind::Kill || *kind == TriggerKind::Death);
+        config
+            .triggers
+            .get_mut(&TriggerKind::Kill)
+            .unwrap()
+            .strength = 0.11;
+
+        let config = config.normalized();
+        assert_eq!(config.triggers[&TriggerKind::Kill].strength, 0.11);
+        assert!(config.triggers.contains_key(&TriggerKind::Assist));
+        let damage = &config.triggers[&TriggerKind::DamageTaken];
+        assert!(!damage.enabled);
+        assert!(!config.trigger(TriggerKind::MatchWon).enabled);
+    }
 
     #[test]
     fn debug_logging_defaults_to_off() {
