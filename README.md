@@ -9,6 +9,7 @@ companion/  deadass-companion: log tail + HTTP ingress + DLL TCP ingress -> dedu
 dll/        deadass-dll: read-only in-process reader injected into deadlock.exe
 desktop/    deadass-desktop: Tauri shell over the companion pipeline + vanilla frontend
 scripts/    CSDK VPK builders invoked by the justfile
+lovelock/   prebuilt addon: Lovelock's HUD script + deadass watchers (see lovelock/README.md)
 ```
 
 ## Game data sources
@@ -24,6 +25,10 @@ There are two ways for this mod to collect data:
   `[DEADASS]` JSON into Deadlock's console; the companion tails
   `game/citadel/console.log`. Needs `-condebug` in Deadlock's launch options.
   Detects kill/death/assist/respawn/ability events. (honestly dont use this, its just overall worse than the dll collector)
+  With `lovelock/dist/pak01_dir.vpk` instead of the addon, the same mode also reads
+  Lovelock's `[DEADLOCK_DEATH_HOOK]` records: parries, damage, healing, health bands,
+  ally heals/shields, soul denies and pickups, objectives and match result.
+  See [lovelock/README.md](lovelock/README.md).
 
 DLL memory offsets come from [dezlock-dump](../dezlock-dump).
 
