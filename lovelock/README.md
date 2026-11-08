@@ -31,6 +31,23 @@ New triggers are disabled until you turn them on in the companion.
 2. Add `-condebug` to Deadlock's launch options so `console.log` is written.
 3. In the companion, set the game data source to **mod**.
 
+## Support profile (optional)
+
+`support-profile.toml` is a tuned haptic profile for support play, built from real
+match logs: every trigger on, each ability slot with its own pattern, and strength
+ordered as a priority ladder (one effect plays at a time; a new one interrupts only
+if it is at least as strong). Apply it with:
+
+```sh
+python3 lovelock/support_profile.py
+```
+
+This merges the profile's trigger tables into your companion config
+(`%APPDATA%\deadass\config.toml` on Windows, `~/.config/deadass/config.toml` on
+Linux) and writes a backup first. Your connection settings, per-trigger toy selection
+and shock settings are kept, and a running companion reloads the change live. Needs
+Python 3.11+. Edit the TOML, or pass your own (`support_profile.py my-profile.toml`), to retune.
+
 ## Rebuild
 
 Download Lovelock from its GameBanana page, extract its `pak01_dir.vpk`, then:

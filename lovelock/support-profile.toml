@@ -1,0 +1,250 @@
+# Support haptic profile for the Lovelock addon (lovelock/dist/pak01_dir.vpk).
+# Apply with:  python3 lovelock/support_profile.py
+# The script merges these tables into your deadass config.toml; your connection
+# settings, per-trigger toy selection and shock settings are kept.
+#
+# One effect plays at a time, and a new one interrupts only if it is at least as
+# strong. Strength is therefore also priority, and the order below is deliberate.
+#
+# Patterns: vibrate holds; pulse is three on/off beats; ramp climbs 40% -> 70% ->
+# 100% of strength in thirds. Ability slots are tuned for Rem (1 Pillow Toss,
+# 2 Tag Along, 3 Lil Helpers, 4 Naptime) but each slot keeps its own feel on any hero.
+# One cast often reports twice (up to ~2 s apart on ultimates), hence the 1 s
+# ability and 4 s ultimate cooldowns.
+
+# --- top of the ladder: rare, game-shaping ---
+
+[triggers.match_won]
+enabled = true
+strength = 1.0
+duration_ms = 5000
+retrigger_cooldown_ms = 500
+pattern = "ramp"
+
+[triggers.patron_weakened]
+enabled = true
+strength = 0.95
+duration_ms = 3500
+retrigger_cooldown_ms = 500
+pattern = "ramp"
+
+# Rarer for a support: three heavy beats.
+[triggers.kill]
+enabled = true
+strength = 0.9
+duration_ms = 1800
+retrigger_cooldown_ms = 600
+pattern = "pulse"
+
+[triggers.base_guardian_destroyed]
+enabled = true
+strength = 0.85
+duration_ms = 2500
+retrigger_cooldown_ms = 500
+pattern = "pulse"
+
+# "Get out" alarm: cuts through everything below it.
+[triggers.health_low]
+enabled = true
+strength = 0.85
+duration_ms = 1500
+retrigger_cooldown_ms = 4000
+pattern = "pulse"
+
+[triggers.parry]
+enabled = true
+strength = 0.85
+duration_ms = 500
+retrigger_cooldown_ms = 500
+pattern = "vibrate"
+
+[triggers.walker_destroyed]
+enabled = true
+strength = 0.8
+duration_ms = 2400
+retrigger_cooldown_ms = 500
+pattern = "ramp"
+
+[triggers.shrine_destroyed]
+enabled = true
+strength = 0.8
+duration_ms = 2400
+retrigger_cooldown_ms = 500
+pattern = "ramp"
+
+# --- support core: assists and the ultimate share a tier, so either interrupts the other ---
+
+[triggers.assist]
+enabled = true
+strength = 0.75
+duration_ms = 1800
+retrigger_cooldown_ms = 400
+pattern = "ramp"
+
+# Ultimate (Rem: Naptime): long, slow swell.
+[triggers."ability_used:3"]
+enabled = true
+strength = 0.75
+duration_ms = 3000
+retrigger_cooldown_ms = 4000
+pattern = "ramp"
+
+[triggers.guardian_destroyed]
+enabled = true
+strength = 0.7
+duration_ms = 2000
+retrigger_cooldown_ms = 500
+pattern = "ramp"
+
+# Ultimate is back: three firm taps.
+[triggers."ability_ready:3"]
+enabled = true
+strength = 0.6
+duration_ms = 1200
+retrigger_cooldown_ms = 2000
+pattern = "pulse"
+
+[triggers.parry_failed]
+enabled = true
+strength = 0.55
+duration_ms = 1200
+retrigger_cooldown_ms = 1000
+pattern = "pulse"
+
+# --- abilities: one pattern per slot, so each is recognisable by feel ---
+
+# Ability 1 (Rem: Pillow Toss): quick triple thump.
+[triggers."ability_used:0"]
+enabled = true
+strength = 0.5
+duration_ms = 600
+retrigger_cooldown_ms = 1000
+pattern = "pulse"
+
+# Ability 2 (Rem: Tag Along): rising swell.
+[triggers."ability_used:1"]
+enabled = true
+strength = 0.5
+duration_ms = 900
+retrigger_cooldown_ms = 1000
+pattern = "ramp"
+
+# Ability 3 (Rem: Lil Helpers): solid buzz.
+[triggers."ability_used:2"]
+enabled = true
+strength = 0.5
+duration_ms = 700
+retrigger_cooldown_ms = 1000
+pattern = "vibrate"
+
+[triggers.ally_shielded]
+enabled = true
+strength = 0.5
+duration_ms = 900
+retrigger_cooldown_ms = 1200
+pattern = "ramp"
+
+[triggers.health_mid]
+enabled = true
+strength = 0.5
+duration_ms = 1000
+retrigger_cooldown_ms = 4000
+pattern = "pulse"
+
+# Breakable box: crisp pop.
+[triggers.soul_pickup_large]
+enabled = true
+strength = 0.45
+duration_ms = 300
+retrigger_cooldown_ms = 200
+pattern = "vibrate"
+
+[triggers.respawn]
+enabled = true
+strength = 0.45
+duration_ms = 1500
+retrigger_cooldown_ms = 1000
+pattern = "ramp"
+
+# --- low tier: background texture, dropped while anything above plays ---
+
+[triggers.death]
+enabled = true
+strength = 0.4
+duration_ms = 2500
+retrigger_cooldown_ms = 1000
+pattern = "vibrate"
+
+[triggers.soul_deny]
+enabled = true
+strength = 0.4
+duration_ms = 200
+retrigger_cooldown_ms = 300
+pattern = "vibrate"
+
+# Steady heartbeat while healing.
+[triggers.ally_healed]
+enabled = true
+strength = 0.35
+duration_ms = 500
+retrigger_cooldown_ms = 900
+pattern = "vibrate"
+
+[triggers.match_lost]
+enabled = true
+strength = 0.35
+duration_ms = 2500
+retrigger_cooldown_ms = 500
+pattern = "vibrate"
+
+# Ability ready echoes the cast pattern, softer.
+[triggers."ability_ready:0"]
+enabled = true
+strength = 0.25
+duration_ms = 450
+retrigger_cooldown_ms = 1000
+pattern = "pulse"
+
+[triggers."ability_ready:1"]
+enabled = true
+strength = 0.25
+duration_ms = 450
+retrigger_cooldown_ms = 1000
+pattern = "ramp"
+
+[triggers."ability_ready:2"]
+enabled = true
+strength = 0.25
+duration_ms = 250
+retrigger_cooldown_ms = 1000
+pattern = "vibrate"
+
+[triggers.damage_taken]
+enabled = true
+strength = 0.25
+duration_ms = 250
+retrigger_cooldown_ms = 600
+pattern = "vibrate"
+
+[triggers.damage_given]
+enabled = true
+strength = 0.2
+duration_ms = 200
+retrigger_cooldown_ms = 800
+pattern = "vibrate"
+
+# Passive regen (under 5 HP) is already filtered out by the companion.
+[triggers.healing_received]
+enabled = true
+strength = 0.2
+duration_ms = 400
+retrigger_cooldown_ms = 1500
+pattern = "vibrate"
+
+# Trooper last hits: in lane this fires every few seconds, so it is a faint tick.
+[triggers.soul_pickup_small]
+enabled = true
+strength = 0.2
+duration_ms = 150
+retrigger_cooldown_ms = 300
+pattern = "vibrate"

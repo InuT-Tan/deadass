@@ -154,6 +154,18 @@ mod tests {
     use crate::config::{ShockConfig, Shocker, TriggerConfig};
 
     #[test]
+    fn shipped_support_profile_parses_with_known_triggers() {
+        #[derive(serde::Deserialize)]
+        struct Profile {
+            triggers: HashMap<TriggerKind, TriggerConfig>,
+        }
+        let raw = include_str!("../../../lovelock/support-profile.toml");
+        let profile: Profile = toml::from_str(raw).expect("support profile parses");
+        assert!(profile.triggers.len() >= TriggerKind::NAMED.len());
+        assert!(profile.triggers[&TriggerKind::SoulPickupSmall].enabled);
+    }
+
+    #[test]
     fn every_named_trigger_has_a_default() {
         let config = AppConfig::default();
         for kind in TriggerKind::NAMED {
